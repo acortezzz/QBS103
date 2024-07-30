@@ -25,11 +25,11 @@ metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024
 
 ```{r}
 #view the data
-head(gene_expression)
+#head(gene_expression)
 ```
 ```{r}
 #view data 
-head(metadata)
+#head(metadata)
 ```
 
 ```{r}
@@ -46,8 +46,8 @@ gene_expression <- gene_expression %>%
 ```
 
 ```{r}
-#library(tidyr)
-#library(tibble)
+library(tidyr)
+library(tibble)
 # Change the gene expression data to long format to combine later
 gene_expression_long <- gene_expression %>%
   pivot_longer(cols = -gene, names_to = "participant_id", values_to = "expression")
@@ -106,26 +106,6 @@ ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
   theme_minimal()
 ```
 
-```{r}
-# Create a scatterplot of expression vs age, colored by sex
-ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
-  geom_point(size = 3, alpha = 0.7) +
-  scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks
-  labs(title = "Scatterplot of ABI1 Gene Expression vs Age",
-       x = "Age",
-       y = "Expression Level",
-       color = "Sex") +
-  theme_minimal()
-```
-
-
-https://www.r-bloggers.com/2022/06/remove-rows-from-the-data-frame-in-r/
-https://www.tutorialspoint.com/how-to-remove-rows-in-an-r-data-frame-using-row-names
-```{r}
-#remove unknown
-gene_of_interest <- gene_of_interest[!(rownames(gene_of_interest) %in% "NONCOVID_15_83y_unknown_ICU"), ]
-
-```
 
 
 
@@ -143,6 +123,29 @@ ggplot(gene_of_interest, aes(x = sex, y = expression, fill = mechanical_ventilat
   facet_wrap(~ mechanical_ventilation)+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
+
+##Remove the unknown age 
+https://www.r-bloggers.com/2022/06/remove-rows-from-the-data-frame-in-r/
+https://www.tutorialspoint.com/how-to-remove-rows-in-an-r-data-frame-using-row-names
+```{r}
+#remove unknown
+gene_of_interest <- gene_of_interest[!(rownames(gene_of_interest) %in% "NONCOVID_15_83y_unknown_ICU"), ]
+
+```
+
+
+```{r}
+# Create a scatterplot of expression vs age, colored by sex
+ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks
+  labs(title = "Scatterplot of ABI1 Gene Expression vs Age",
+       x = "Age",
+       y = "Expression Level",
+       color = "Sex") +
+  theme_minimal()
+```
+
 
 ```{r}
 #Create a boxplot of expression separated by both sex and mechanical_ventilation
