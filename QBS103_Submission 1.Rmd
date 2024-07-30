@@ -1,0 +1,52 @@
+---
+title: "QBS103_Submission 1"
+author: "Angelique Cortez"
+date: "2024-07-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+set.seed(1001001)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+```
+```{r}
+#read the downloaded csvs for the gene expression and metadata
+gene_expression <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_genes.csv")
+metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_series_matrix.csv", header = T)
+```
+
+```{r}
+#determine if file is a dataframe
+class(gene_expression)
+class(metadata)
+```
+
+#Identify one gene, one continuous covariate, and two categorical covariates in the provided dataset. Note: Gene expression data and metadata are in two separate files and will need to be linked.
+```{r}
+
+```
+
+
+#Generate the following three plots using ggplot2 for your covariates of choice:
+o	Histogram for gene expression (5 pts)   
+```{r}
+
+```
+
+o	Scatterplot for gene expression and continuous covariate (5 pts)
+```{r}
+
+```
+
+o	Boxplot of gene expression separated by both categorical covariates (5 pts)
+
+
+
