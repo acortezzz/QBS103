@@ -70,9 +70,10 @@ gene_of_interest <- combined_data %>%
     # Extract sex using a regular expression
     sex = sub(".*_(male|female)_.*", "\\1", participant_id)
   ) %>%
-  select(expression,age, sex, mechanical_ventilation)# choose covariates
+  select(participant_id, expression, age, sex, mechanical_ventilation) %>% #choose covariates
+  column_to_rownames(var = "participant_id") # Set participant_id as row names
 ```
-
+#realized I may want to have the correlating participant ID for later
 
 #Generate the following three plots using ggplot2 for your covariates of choice:
 o	Histogram for gene expression (5 pts)   
@@ -104,7 +105,25 @@ ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
        color = "Sex") +
   theme_minimal()
 ```
+
 ```{r}
+# Create a scatterplot of expression vs age, colored by sex
+ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks
+  labs(title = "Scatterplot of ABI1 Gene Expression vs Age",
+       x = "Age",
+       y = "Expression Level",
+       color = "Sex") +
+  theme_minimal()
+```
+
+
+https://www.r-bloggers.com/2022/06/remove-rows-from-the-data-frame-in-r/
+https://www.tutorialspoint.com/how-to-remove-rows-in-an-r-data-frame-using-row-names
+```{r}
+#remove unknown
+gene_of_interest <- gene_of_interest[!(rownames(gene_of_interest) %in% "NONCOVID_15_83y_unknown_ICU"), ]
 
 ```
 
@@ -125,4 +144,15 @@ ggplot(gene_of_interest, aes(x = sex, y = expression, fill = mechanical_ventilat
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
 
-
+```{r}
+#Create a boxplot of expression separated by both sex and mechanical_ventilation
+ggplot(gene_of_interest, aes(x = sex, y = expression, fill = mechanical_ventilation)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of ABI1 Gene Expression by Sex and Mechanical Ventilation",
+       x = "Sex",
+       y = "Expression Level",
+       fill = "Mechanical Ventilation") +
+  theme_minimal() +
+  facet_wrap(~ mechanical_ventilation)+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
