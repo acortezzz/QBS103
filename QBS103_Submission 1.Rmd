@@ -24,6 +24,15 @@ metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024
 ```
 
 ```{r}
+#view the data
+head(gene_expression)
+```
+```{r}
+#view data 
+head(metadata)
+```
+
+```{r}
 #determine if file is a dataframe
 class(gene_expression)
 class(metadata)
@@ -31,7 +40,30 @@ class(metadata)
 
 #Identify one gene, one continuous covariate, and two categorical covariates in the provided dataset. Note: Gene expression data and metadata are in two separate files and will need to be linked.
 ```{r}
+#need to set the gene name from X column
+gene_expression <- gene_expression %>%
+  rename(gene = X)
+```
 
+```{r}
+#library(tidyr)
+#library(tibble)
+# Change the gene expression data to long format to combine later
+gene_expression_long <- gene_expression %>%
+  pivot_longer(cols = -gene, names_to = "participant_id", values_to = "expression")
+
+```
+
+```{r}
+# Merge the datasets
+combined_data <- merge(gene_expression_long, metadata, by.x = "participant_id", by.y = "participant_id")
+```
+
+```{r}
+# Choose gene of interest
+gene_of_interest <- combined_data %>%
+  filter(gene == "ABI1") %>% # can change gene name here
+  select(expression,age, sex, mechanical_ventilation)# choose covariates
 ```
 
 
