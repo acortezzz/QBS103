@@ -59,10 +59,17 @@ gene_expression_long <- gene_expression %>%
 combined_data <- merge(gene_expression_long, metadata, by.x = "participant_id", by.y = "participant_id")
 ```
 
+##was running into issues and used this resources https://stackoverflow.com/questions/70191127/transforming-complete-age-from-character-to-numeric-in-r to mutate the age as numeric 
 ```{r}
 # Choose gene of interest
 gene_of_interest <- combined_data %>%
-  filter(gene == "ABI1") %>% # can change gene name here
+  filter(gene == "ABI1") %>% # choose 'ABI1' gene of interest
+  mutate(
+    # Extract age using a regular expression and convert to numeric
+    age = as.numeric(sub(".*_(\\d{2})y_.*", "\\1", participant_id)),
+    # Extract sex using a regular expression
+    sex = sub(".*_(male|female)_.*", "\\1", participant_id)
+  ) %>%
   select(expression,age, sex, mechanical_ventilation)# choose covariates
 ```
 
@@ -70,15 +77,52 @@ gene_of_interest <- combined_data %>%
 #Generate the following three plots using ggplot2 for your covariates of choice:
 o	Histogram for gene expression (5 pts)   
 ```{r}
-
+#call library
+library(ggplot2)
 ```
 
+```{r}
+# Create a histogram of the expression values
+ggplot(gene_of_interest, aes(x = expression)) +
+  geom_histogram(binwidth = 0.5, fill = "blue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of ABI1 Gene Expression",
+       x = "Expression Level",
+       y = "Frequency") +
+  theme_minimal()
+```
+
+
 o	Scatterplot for gene expression and continuous covariate (5 pts)
+```{r}
+# Create a scatterplot of expression vs age, colored by sex
+ggplot(gene_of_interest, aes(x = age, y = expression, color = sex)) +
+  geom_point(size = 3, alpha = 0.7) +
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks
+  labs(title = "Scatterplot of ABI1 Gene Expression vs Age",
+       x = "Age",
+       y = "Expression Level",
+       color = "Sex") +
+  theme_minimal()
+```
 ```{r}
 
 ```
 
+
+
 o	Boxplot of gene expression separated by both categorical covariates (5 pts)
 
+```{r}
+#Create a boxplot of expression separated by both sex and mechanical_ventilation
+ggplot(gene_of_interest, aes(x = sex, y = expression, fill = mechanical_ventilation)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of ABI1 Gene Expression by Sex and Mechanical Ventilation",
+       x = "Sex",
+       y = "Expression Level",
+       fill = "Mechanical Ventilation") +
+  theme_minimal() +
+  facet_wrap(~ mechanical_ventilation)+
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
 
 
