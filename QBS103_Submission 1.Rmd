@@ -85,7 +85,7 @@ library(ggplot2)
 ```{r}
 # Create a histogram of the expression values
 ggplot(gene_of_interest, aes(x = expression)) +
-  geom_histogram(binwidth = 0.5, fill = "blue", color = "black", alpha = 0.7) +
+  geom_histogram(binwidth = 10, fill = "blue", color = "black", alpha = 0.7) +
   labs(title = "Histogram of ABI1 Gene Expression",
        x = "Expression Level",
        y = "Frequency") +
@@ -159,3 +159,7 @@ ggplot(gene_of_interest, aes(x = sex, y = expression, fill = mechanical_ventilat
   facet_wrap(~ mechanical_ventilation)+
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
+```{r}
+write.csv(combined_data, file = "~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/combined_data_project.csv")
+```
+
