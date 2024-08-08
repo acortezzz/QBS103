@@ -21,7 +21,7 @@ combined_data <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summe
 ```
 
 
-#I had issues removing the unknown age with the function, my goal for the next submission is to figure out how.
+#I had issues removing the unknown age with the function, my goal for the next submission is to figure out how by next week
 ```{r}
 # Write a function that can recreate the plots from submission one
 generate_plots <- function(data, genes, continuous_covariate, categorical_covariate1, categorical_covariate2) {
