@@ -1,7 +1,7 @@
 ---
-title: "Submission 2"
+title: "Final_Submission_AC"
 author: "Angelique Cortez"
-date: "2024-08-08"
+date: "2024-08-25"
 output: pdf_document
 ---
 
@@ -15,20 +15,17 @@ set.seed(1001001)
 ```{r}
 library(ggplot2)
 library(dplyr)
+library(ggpubr)
 ```
 
-
-Build a function to create the plots you made for Presentation 1, incorporating any feedback you received on your submission. Your functions should take the following input: (1) the name of the data frame, (2) a list of 1 or more gene names, (3) 1 continuous covariate, and (4) two categorical covariates (10 pts)
-Select 2 additional genes (for a total of 3 genes) to look at and implement a loop to generate your figures using the function you created (10 pts)
-
 ```{r}
-combined_data <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/combined_data_project.csv")
+#read the downloaded csvs for the gene expression and metadata
+gene_expression <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_genes.csv")
+metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_series_matrix.csv", header = T)
 ```
 
-
-#I had issues removing the unknown age with the function, my goal for the next submission is to figure out how by next week
 ```{r}
-# Write a function that can recreate the plots from submission one
+# Write a function that can recreate the plots from submission one and two but fix the unknown variable
 generate_plots <- function(data, genes, continuous_covariate, categorical_covariate1, categorical_covariate2) {
   
   for (gene in genes) {
@@ -38,16 +35,18 @@ generate_plots <- function(data, genes, continuous_covariate, categorical_covari
       mutate(
         # Extract age using a regular expression and convert to numeric
         !!continuous_covariate := as.numeric(sub(".*_(\\d{2})y_.*", "\\1", participant_id)),
-        # Extract sex using a regular expression (assuming categorical_covariate1 is sex)
+        # Extract sex, identifying male or female
         !!categorical_covariate1 := sub(".*_(male|female)_.*", "\\1", participant_id)
       ) %>%
+      # Filter out participants labeled as "unknown"
+      filter(!grepl("unknown", participant_id)) %>%
       select(expression, !!sym(continuous_covariate), !!sym(categorical_covariate1), !!sym(categorical_covariate2)) %>%
       distinct()  # Ensure no duplicate rows
     
     # Check if the gene_data has the correct number of data points
     print(paste("Number of data points for gene", gene, ":", nrow(gene_data)))
     
-     # Histogram: distribution of expression values
+    # Histogram: distribution of expression values
     histogram_plot <- ggplot(gene_data, aes(x = expression)) +
       geom_histogram(binwidth = 10, fill = "blue", color = "black", alpha = 0.7) +
       labs(title = paste("Histogram of", gene, "Gene Expression"),
@@ -58,14 +57,31 @@ generate_plots <- function(data, genes, continuous_covariate, categorical_covari
     print(histogram_plot)
     
     # Scatterplot: expression vs continuous covariate, colored by categorical covariate1
-    scatter_plot <- ggplot(gene_data, aes_string(x = continuous_covariate, y = "expression", color = categorical_covariate1)) +
-      geom_point(size = 3, alpha = 0.7) +
-      scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks if needed
-      labs(title = paste("Scatterplot of", gene, "Expression vs", continuous_covariate),
-           x = continuous_covariate,
-           y = "Expression Level",
-           color = categorical_covariate1) +
-      theme_minimal()
+    # Calculate the Pearson correlation coefficient and p-value
+correlation_test <- cor.test(gene_data[[continuous_covariate]], gene_data$expression, method = "pearson")
+correlation_value <- round(correlation_test$estimate, 2)
+p_value <- round(correlation_test$p.value, 4)
+
+# Create the scatter plot
+scatter_plot <- ggplot(gene_data, aes_string(x = continuous_covariate, y = "expression", color = categorical_covariate1)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE, color = "black", linetype = "dashed") +  # Add the correlation line
+  annotate("text", x = 5, y = max(gene_data$expression) * 0.9, 
+           label = paste("R =", correlation_value, "\np =", p_value), 
+           color = "black", size = 5, hjust = 0) +  # Display the correlation coefficient and p-value
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks if needed
+  labs(title = paste("Scatterplot of", gene, "Expression vs", continuous_covariate),
+       x = continuous_covariate,
+       y = "Expression Level",
+       color = categorical_covariate1) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    legend.position = "right"
+  )
+
     
     print(scatter_plot)
     
@@ -81,21 +97,29 @@ generate_plots <- function(data, genes, continuous_covariate, categorical_covari
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
     
     print(box_plot)
-    
-
   }
 }
 
+
 ```
 
+
+
 ```{r}
-# how to use function with three genes
 generate_plots(
   data = combined_data, 
-  genes = c("ABI1", "ABHD17A", "ABAT"), 
+  genes = c("ABI1"), 
   continuous_covariate = "age", 
   categorical_covariate1 = "sex", 
   categorical_covariate2 = "mechanical_ventilation"
 )
 ```
+
+
+
+
+
+
+
+
 
