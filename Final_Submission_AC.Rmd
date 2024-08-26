@@ -16,6 +16,8 @@ set.seed(1001001)
 library(ggplot2)
 library(dplyr)
 library(ggpubr)
+library(kableExtra)
+library(tidyr)
 ```
 
 ```{r}
@@ -24,6 +26,7 @@ gene_expression <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Sum
 metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_series_matrix.csv", header = T)
 ```
 
+#Use function to create histogram and 
 ```{r}
 # Write a function that can recreate the plots from submission one and two but fix the unknown variable
 generate_plots <- function(data, genes, continuous_covariate, categorical_covariate1, categorical_covariate2) {
@@ -71,7 +74,7 @@ scatter_plot <- ggplot(gene_data, aes_string(x = continuous_covariate, y = "expr
            color = "black", size = 5, hjust = 0) +  # Display the correlation coefficient and p-value
   scale_x_continuous(breaks = seq(0, 100, by = 10)) +  # Customize x-axis breaks if needed
   labs(title = paste("Scatterplot of", gene, "Expression vs", continuous_covariate),
-       x = continuous_covariate,
+       x = "Age (yrs)",  # Update x-axis title here
        y = "Expression Level",
        color = categorical_covariate1) +
   theme_minimal() +
@@ -119,7 +122,56 @@ generate_plots(
 
 
 
+```{r}
+# Remove the row with participant_id 'NONCOVID_15_83y_unknown_ICU'
+filtered_data <- combined_data %>%
+  filter(participant_id != "NONCOVID_15_83y_unknown_ICU")
 
+# Check the result
+print(filtered_data)
+```
+
+#Used inspiration to make summry table from https://stackoverflow.com/questions/59214500/summary-table-of-numeric-and-categorical-data-in-r
+```{r}
+# Load necessary packages
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+# Replace 'var1' and 'var2' with your actual continuous variables
+#continuous_vars <- c("expression", "age","ferritin.ng.ml.", "crp.mg.l.")
+
+
+
+calcs <- filtered_data %>%
+  mutate(
+    sex = forcats::fct_relevel(sex, "male"),  # Adjusted to match the actual levels
+    icu_status = forcats::fct_relevel(icu_status, "yes", "no")
+  ) %>%
+  group_by(icu_status, sex) %>%
+  summarise(
+     n = n(),# number of participants per row
+    mean_age = round(mean(age, na.rm = TRUE), digits = 2),
+    sd_age = round(sd(age, na.rm = TRUE), digits = 2),
+    mean_ferritin = round(mean(ferritin.ng.ml., na.rm = TRUE), digits = 2),
+    sd_ferritin = round(sd(ferritin.ng.ml., na.rm = TRUE), digits = 2),
+    mean_crp = round(mean(crp.mg.l., na.rm = TRUE), digits = 2),
+    sd_crp = round(sd(crp.mg.l., na.rm = TRUE), digits = 2),
+    .groups = "drop"
+  ) %>%
+  ungroup() %>%
+  tidyr::replace_na(list(sd_age = 0, sd_ferritin = 0, sd_crp = 0))
+
+calcs
+
+# Format the table for LaTeX output using kableExtra
+latex_table <- calcs %>%
+  kbl(format = "latex", booktabs = TRUE, caption = "Summary Statistics of Covariates") %>%
+  kable_styling(latex_options = "hold_position")
+# Print the table (this can be copy-pasted into your LaTeX document)
+latex_table
+
+```
 
 
 
