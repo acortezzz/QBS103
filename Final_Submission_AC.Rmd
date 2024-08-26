@@ -18,6 +18,8 @@ library(dplyr)
 library(ggpubr)
 library(kableExtra)
 library(tidyr)
+library(pheatmap)
+library(tibble)
 ```
 
 ```{r}
@@ -25,6 +27,13 @@ library(tidyr)
 gene_expression <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_genes.csv")
 metadata <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/QBS103_GSE157103_series_matrix.csv", header = T)
 ```
+
+```{r}
+combined_data <- read.csv("~/Dropbox (Dartmouth College)/Dartmouth Classes/Summer2024/Intro to data analysis/data/combined_data_project.csv")
+```
+
+
+
 
 #Use function to create histogram and 
 ```{r}
@@ -173,5 +182,80 @@ latex_table
 
 ```
 
+
+
+
+#Create heatmap
+
+```{r}
+# Check if column names of gene_expression match participant IDs in metadata
+identical(colnames(gene_expression), metadata$participant_id)
+```
+
+```{r}
+# Set the gene column as row names
+rownames(gene_expression) <- gene_expression$gene
+
+# Remove the gene column as it's now redundant
+gene_expression <- gene_expression[, !names(gene_expression) %in% "gene"]
+```
+
+```{r}
+# Check the first few rows to confirm
+head(gene_expression)
+
+# Check the row names
+head(rownames(gene_expression))
+```
+
+```{r}
+# IDs in gene expression but not in metadata
+missing_in_metadata <- setdiff(colnames(gene_expression), metadata$participant_id)
+# IDs in metadata but not in gene expression
+missing_in_gene_expression <- setdiff(metadata$participant_id, colnames(gene_expression))
+
+# Print the results
+missing_in_metadata
+missing_in_gene_expression
+```
+
+```{r}
+# Normalize column names in gene_expression
+colnames(gene_expression) <- gsub("[[:punct:]]", "_", tolower(trimws(colnames(gene_expression))))
+
+# Normalize participant_id in metadata
+metadata$participant_id <- gsub("[[:punct:]]", "_", tolower(trimws(metadata$participant_id)))
+
+# Check again for discrepancies
+missing_in_metadata <- setdiff(colnames(gene_expression), metadata$participant_id)
+missing_in_gene_expression <- setdiff(metadata$participant_id, colnames(gene_expression))
+
+# Print the results
+missing_in_metadata
+missing_in_gene_expression
+```
+
+
+
+```{r}
+# Prepare metadata for annotations
+annotation_data <- metadata %>%
+  select(participant_id, icu_status, mechanical_ventilation) %>%
+  column_to_rownames("participant_id")
+
+# Ensure gene_expression columns match metadata participant IDs
+gene_expression <- gene_expression[, colnames(gene_expression) %in% metadata$participant_id]
+
+# Plot the heatmap
+pheatmap(
+  gene_expression[80:100, ],
+  annotation_col = annotation_data,
+  annotation_colors = annotationColors,
+  clustering_distance_cols = "euclidean",
+  clustering_distance_rows = "euclidean",
+  show_rownames = TRUE,
+  show_colnames = FALSE
+)
+```
 
 
