@@ -112,7 +112,6 @@ scatter_plot <- ggplot(gene_data, aes_string(x = continuous_covariate, y = "expr
   }
 }
 
-
 ```
 
 
@@ -137,20 +136,11 @@ filtered_data <- combined_data %>%
   filter(participant_id != "NONCOVID_15_83y_unknown_ICU")
 
 # Check the result
-print(filtered_data)
+#print(filtered_data)
 ```
 
 #Used inspiration to make summry table from https://stackoverflow.com/questions/59214500/summary-table-of-numeric-and-categorical-data-in-r
 ```{r}
-# Load necessary packages
-library(dplyr)
-library(tidyr)
-library(kableExtra)
-
-# Replace 'var1' and 'var2' with your actual continuous variables
-#continuous_vars <- c("expression", "age","ferritin.ng.ml.", "crp.mg.l.")
-
-
 
 calcs <- filtered_data %>%
   mutate(
@@ -202,10 +192,10 @@ gene_expression <- gene_expression[, !names(gene_expression) %in% "gene"]
 
 ```{r}
 # Check the first few rows to confirm
-head(gene_expression)
+#head(gene_expression)
 
 # Check the row names
-head(rownames(gene_expression))
+#head(rownames(gene_expression))
 ```
 
 ```{r}
@@ -246,11 +236,10 @@ annotation_data <- metadata %>%
 # Ensure gene_expression columns match metadata participant IDs
 gene_expression <- gene_expression[, colnames(gene_expression) %in% metadata$participant_id]
 
-# Plot the heatmap
+# Plot the heatmap without specifying annotation colors
 pheatmap(
   gene_expression[80:100, ],
   annotation_col = annotation_data,
-  annotation_colors = annotationColors,
   clustering_distance_cols = "euclidean",
   clustering_distance_rows = "euclidean",
   show_rownames = TRUE,
@@ -258,4 +247,46 @@ pheatmap(
 )
 ```
 
+
+
+
+
+#PCA plot by 
+```{r}
+# Select numeric columns for PCA
+pca_data <- filtered_data %>%
+  select(where(is.numeric)) %>%
+  na.omit()  # Remove any rows with NA values
+# Check for NA values
+if(any(is.na(pca_data))) {
+    pca_data <- na.omit(pca_data)
+    message("NA values found and removed from the data.")
+}
+
+# Identify and remove columns with zero variance
+constant_columns <- sapply(pca_data, function(x) var(x, na.rm = TRUE) == 0)
+pca_data_clean <- pca_data[, !constant_columns]
+
+# Perform PCA on the cleaned data
+pca_result <- prcomp(pca_data_clean, scale. = TRUE)
+
+# Create a dataframe with the PCA results and the categorical variable
+pca_df <- data.frame(PC1 = pca_result$x[,1],
+                     PC2 = pca_result$x[,2],
+                     CategoricalVariable = factor(filtered_data$icu_status, levels = unique(filtered_data$icu_status)))  
+
+
+```
+```{r}
+# Plot the PCA
+ggplot(pca_df, aes(x = PC1, y = PC2, color = CategoricalVariable)) +
+    geom_point(size = 3, alpha = 0.8) +
+    stat_ellipse(type = "norm", linetype = 2) +  # Add ellipses around groups
+    labs(title = "PCA Plot",
+         x = paste0("Principal Component 1 (", round(pca_result$sdev[1]^2 / sum(pca_result$sdev^2) * 100, 1), "% Variance)"),
+         y = paste0("Principal Component 2 (", round(pca_result$sdev[2]^2 / sum(pca_result$sdev^2) * 100, 1), "% Variance)"),
+         color = "ICU Status") +  # Change the legend title here
+    theme_minimal() +
+    theme(legend.position = "bottom")  # Place legend at the bottom
+```
 
